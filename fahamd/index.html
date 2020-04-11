@@ -1,0 +1,28 @@
+<html>
+    <head>
+    <title>AMD GPU Data</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="plotly.min.js"></script>
+    <script src="fahamd.js"></script>
+    <!-- <link rel="stylesheet" type="text/css" href="styles.css"> -->
+    </head>
+    <body onload='init()'>
+    <div class="navbar"><span>AMD GPU Data</span></div>
+    <div class="wrapper">
+        <div id="chart"></div>
+        <form>
+  <label for="field">Choose a data field:</label>
+<select id="field" name="field">
+      <option value="temperature">Temperature</option>
+      <option value="usage">Usage</option>
+      <option value="fanSpeedPercentage">Fan Speed %</option>
+      <option value="fanSpeedRPM">Fan Speed RPM</option>
+      <option value="memoryClock">Memory Clock</option>
+      <option value="engineClock">Engine Clock</option>
+      <option value="coreVoltage">Core Voltage</option>
+  </select>
+  <input type="submit">
+</form>
+    </div>
+    </body>
+</html>
