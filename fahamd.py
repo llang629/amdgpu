@@ -20,7 +20,7 @@ DEFAULT_SERVER_PORT = 80
 def fah_pyon(command, host="localhost"):
     """Retrieve Folding@Home data in PyON format via localhost telnet."""
     FAH_TELNET_PORT = 36330
-    WELCOME = "Welcome to the Folding@home Client command server.\n>".encode()
+    WELCOME = "Welcome to the FAHClient command server.\n>".encode()
     EXIT = "exit\n".encode()
     HEADER = "PyON 1 ".encode()
     TRAILER = "---\n".encode()
@@ -38,7 +38,7 @@ def fah_pyon(command, host="localhost"):
 def fah_bus2gpu():
     """Return map from bus to F@H gpu."""
     gpu_dict = {}
-    system = fah_pyon("info")["info"][2]
+    system = fah_pyon("info")["info"][3]
     for item in system:
         if "GPU " in item[0]:
             bus = item[1].split(" ")[0].split(":")[1]

@@ -61,7 +61,7 @@ async function init () {
     const time = new Date()
     let name = null
     if (legend === 'slot') {
-      name = 'ID ' + gpu2slot[bus2gpu[busNumbers[i][0]]]
+      name = 'ID ' + gpu2slot[busNumbers[i][0]]
     } else if (legend === 'gpu') {
       name = 'gpu ' + bus2gpu[busNumbers[i][0]]
     } else {
