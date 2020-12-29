@@ -25,7 +25,7 @@ async function statusUpdate (traceInits) {
   fahData('gpu')
     .then(status => {
       for (let i = 0; i < gpuCount; i++) {
-        const gpu = bus2gpu[busNumbers[i][0]]
+        const gpu = busNumbers[i][0]
         if (status[gpu] === 'RUNNING') {
           traceInits[i].line.dash = 'solid'
         } else if (status[gpu] === 'DOWNLOAD') {

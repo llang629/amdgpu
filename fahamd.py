@@ -19,18 +19,27 @@ DEFAULT_SERVER_PORT = 80
 
 def fah_pyon(command, host="localhost"):
     """Retrieve Folding@Home data in PyON format via localhost telnet."""
+    # timeout if these cues change because of FAH version change
+    timeout = 2
     FAH_TELNET_PORT = 36330
-    # server will stall if these cues change during FAH version update
     WELCOME = "Welcome to the FAHClient command server.\n>".encode()
     EXIT = "exit\n".encode()
     HEADER = "PyON 1 ".encode()
     TRAILER = "---\n".encode()
     NEWLINE = "\n".encode()
     tn = telnetlib.Telnet(host, FAH_TELNET_PORT)
-    tn.read_until(WELCOME)
+    result = tn.read_until(WELCOME, timeout)
+    if WELCOME not in result:
+        print("Mismatch error starting FAH telnet API")
+        sys.stdout.flush()
+        return
     tn.write(command.encode() + NEWLINE + EXIT)
-    tn.read_until(HEADER)
-    message_name = tn.read_until(NEWLINE).rstrip().decode()
+    result = tn.read_until(HEADER, timeout)
+    if HEADER not in result:
+        print("Mismatch error reading FAH telnet API")
+        sys.stdout.flush()
+        return
+    message_name = tn.read_until(NEWLINE, timeout).rstrip().decode()
     output = tn.read_all()
     output = output[:output.find(TRAILER)]
     return {message_name: eval(output, {}, {})}
