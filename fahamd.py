@@ -20,6 +20,7 @@ DEFAULT_SERVER_PORT = 80
 def fah_pyon(command, host="localhost"):
     """Retrieve Folding@Home data in PyON format via localhost telnet."""
     FAH_TELNET_PORT = 36330
+    # server will stall if these cues change during FAH version update
     WELCOME = "Welcome to the FAHClient command server.\n>".encode()
     EXIT = "exit\n".encode()
     HEADER = "PyON 1 ".encode()
