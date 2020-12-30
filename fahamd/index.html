@@ -2,26 +2,19 @@
 <head>
   <title>Folding@Home with AMD GPUs</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <script src="plotly.min.js"></script>
-  <script src="fahamd.js"></script>
-  <!-- <link rel="stylesheet" type="text/css" href="styles.css"> -->
 </head>
-<body onload='init()'>
-  <div class="wrapper">
-    <form>
-      <label for="field">Choose a data field:</label>
-      <select id="field" name="field">
-        <option value="temperature">Temperature</option>
-        <option value="usage">Usage</option>
-        <option value="fanSpeedPercentage">Fan Speed %</option>
-        <option value="fanSpeedRPM">Fan Speed RPM</option>
-        <option value="memoryClock">Memory Clock</option>
-        <option value="engineClock">Engine Clock</option>
-        <option value="coreVoltage">Core Voltage</option>
-      </select>
-      <input type="submit">
-    </form>
-    <div id="chart"></div>
-  </div>
+<style>
+.hvframe{
+  postion: relative;
+  width: 49%;
+  height: 100%;
+}
+</style>
+<body>
+  <iframe id="lframe" class="hvframe" src=""></iframe>
+  <iframe id="rframe" class="hvframe" src="/fah.html"></iframe>
 </body>
+<script language="JavaScript">
+document.getElementById("lframe").src = window.location.protocol + '//' + window.location.hostname + ':7396'
+</script>
 </html>

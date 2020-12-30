@@ -146,6 +146,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.http_response(amd_gpu())
         else:
             filename = self.path.split("?")[0]
+            mode = 'r'
             if filename == "/":
                 filename = "index.html"
             print("filename", filename)
@@ -153,10 +154,13 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 mimetype = 'text/html'
             elif filename.endswith(".js"):
                 mimetype = 'application/javascript'
+            elif filename.endswith(".ico"):
+                mimetype = 'image/x-icon'
+                mode = 'rb'
             else:
                 print("Unknown mimetype for", filename)
             try:
-                f = open(public_directory + filename)
+                f = open(public_directory + filename, mode)
                 self.send_response(200)
                 self.send_header('Content-type', mimetype)
                 self.end_headers()
