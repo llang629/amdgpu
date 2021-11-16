@@ -5,6 +5,7 @@ import BaseHTTPServer
 import urlparse
 import json
 from os import curdir, sep
+import socket
 import sys
 import time
 import telnetlib
@@ -48,6 +49,30 @@ def amd_gpu():
         return {"gpus": gpu_list}
     else:
         return {"error": "AMD Display Library not available"}
+
+
+def socketread(socket):
+    buffer = socket.recv(4096)
+    done = False
+    while not done:
+        more = socket.recv(4096)
+        if not more:
+            done = True
+        else:
+            buffer = buffer+more
+    if buffer:
+        return buffer
+
+
+def eth_gpu():
+    """Retrieve Ethereum status for each gpu via sgminer api."""
+    # derived from https://github.com/sgminer-dev/sgminer/blob/master/api-example.py
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('127.0.0.1', 4028))
+    s.send(json.dumps({'command': 'devs'}).encode())
+    eth_gpus = json.loads(socketread(s).decode('utf8').replace('\x00', ''))
+    s.close()
+    return eth_gpus
 
 
 def fah_pyon(command, host="localhost"):
@@ -138,12 +163,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         query = urlparse.parse_qs(query_string)
         if "/api/amd/gpu" in self.path:
             self.http_response(amd_gpu())
+        elif "/api/eth/gpu" in self.path:
+            self.http_response(eth_gpu())
+        elif "/api/fah/gpu" in self.path:
+            self.http_response(fah_gpu())
         elif "/api/fah/bus2gpu" in self.path:
             self.http_response(fah_bus2gpu())
         elif "/api/fah/gpu2slot" in self.path:
             self.http_response(fah_gpu2slot())
-        elif "/api/fah/gpu" in self.path:
-            self.http_response(fah_gpu())
         else:
             filename = self.path.split("?")[0]
             mode = 'r'
