@@ -17,73 +17,6 @@ except (ImportError, NameError):
 DEFAULT_SERVER_PORT = 80
 
 
-def fah_pyon(command, host="localhost"):
-    """Retrieve Folding@Home data in PyON format via localhost telnet."""
-    # timeout if these cues change because of FAH version change
-    timeout = 2
-    FAH_TELNET_PORT = 36330
-    WELCOME = "Welcome to the FAHClient command server.\n>".encode()
-    EXIT = "exit\n".encode()
-    HEADER = "PyON 1 ".encode()
-    TRAILER = "---\n".encode()
-    NEWLINE = "\n".encode()
-    tn = telnetlib.Telnet(host, FAH_TELNET_PORT)
-    result = tn.read_until(WELCOME, timeout)
-    if WELCOME not in result:
-        print("Mismatch error starting FAH telnet API")
-        sys.stdout.flush()
-        return
-    tn.write(command.encode() + NEWLINE + EXIT)
-    result = tn.read_until(HEADER, timeout)
-    if HEADER not in result:
-        print("Mismatch error reading FAH telnet API")
-        sys.stdout.flush()
-        return
-    message_name = tn.read_until(NEWLINE, timeout).rstrip().decode()
-    output = tn.read_all()
-    output = output[:output.find(TRAILER)]
-    return {message_name: eval(output, {}, {})}
-
-
-def fah_bus2gpu():
-    """Return map from bus to F@H gpu."""
-    gpu_dict = {}
-    system = fah_pyon("info")["info"][3]
-    for item in system:
-        if "GPU " in item[0]:
-            bus = item[1].split(" ")[0].split(":")[1]
-            gpu = item[0].split(" ")[1]
-            gpu_dict[bus] = gpu
-    print("bus to gpu:", gpu_dict)
-    return gpu_dict
-
-
-def fah_gpu2slot():
-    """Return map from F@H gpu to slot."""
-    slot_dict = {}
-    slots = fah_pyon("slot-info")["slots"]
-    for slot in slots:
-        if "gpu" in slot["description"]:
-            gpu = slot["description"].split(":")[1]
-            id = slot["id"]
-            slot_dict[gpu] = id
-    print("gpu to slot:", slot_dict)
-    return slot_dict
-
-
-def fah_gpu():
-    """Return F@H status for each gpu."""
-    status_dict = {}
-    slots = fah_pyon("slot-info")["slots"]
-    for slot in slots:
-        if "gpu" in slot["description"]:
-            gpu = slot["description"].split(":")[1]
-            status = slot["status"]
-            status_dict[gpu] = status
-    print("gpu to status:", status_dict)
-    return status_dict
-
-
 def amd_gpu():
     """Return status for each AMD GPU."""
     # derived from https://github.com/nicolargo/pyadl
@@ -117,6 +50,73 @@ def amd_gpu():
         return {"error": "AMD Display Library not available"}
 
 
+def fah_pyon(command, host="localhost"):
+    """Retrieve Folding@Home data in PyON format via localhost telnet."""
+    # timeout if these cues change because of FAH version change
+    timeout = 2
+    FAH_TELNET_PORT = 36330
+    WELCOME = "Welcome to the FAHClient command server.\n>".encode()
+    EXIT = "exit\n".encode()
+    HEADER = "PyON 1 ".encode()
+    TRAILER = "---\n".encode()
+    NEWLINE = "\n".encode()
+    tn = telnetlib.Telnet(host, FAH_TELNET_PORT)
+    result = tn.read_until(WELCOME, timeout)
+    if WELCOME not in result:
+        print("Mismatch error starting FAH telnet API")
+        sys.stdout.flush()
+        return
+    tn.write(command.encode() + NEWLINE + EXIT)
+    result = tn.read_until(HEADER, timeout)
+    if HEADER not in result:
+        print("Mismatch error reading FAH telnet API")
+        sys.stdout.flush()
+        return
+    message_name = tn.read_until(NEWLINE, timeout).rstrip().decode()
+    output = tn.read_all()
+    output = output[:output.find(TRAILER)]
+    return {message_name: eval(output, {}, {})}
+
+
+def fah_gpu():
+    """Return F@H status for each gpu."""
+    status_dict = {}
+    slots = fah_pyon("slot-info")["slots"]
+    for slot in slots:
+        if "gpu" in slot["description"]:
+            gpu = slot["description"].split(":")[1]
+            status = slot["status"]
+            status_dict[gpu] = status
+    print("gpu to status:", status_dict)
+    return status_dict
+
+
+def fah_bus2gpu():
+    """Return map from bus to F@H gpu."""
+    gpu_dict = {}
+    system = fah_pyon("info")["info"][3]
+    for item in system:
+        if "GPU " in item[0]:
+            bus = item[1].split(" ")[0].split(":")[1]
+            gpu = item[0].split(" ")[1]
+            gpu_dict[bus] = gpu
+    print("bus to gpu:", gpu_dict)
+    return gpu_dict
+
+
+def fah_gpu2slot():
+    """Return map from F@H gpu to slot."""
+    slot_dict = {}
+    slots = fah_pyon("slot-info")["slots"]
+    for slot in slots:
+        if "gpu" in slot["description"]:
+            gpu = slot["description"].split(":")[1]
+            id = slot["id"]
+            slot_dict[gpu] = id
+    print("gpu to slot:", slot_dict)
+    return slot_dict
+
+
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     """Handle HTTP get requests."""
 
@@ -136,14 +136,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         public_directory = curdir + sep + "amdgpu-public" + sep
         query_string = urlparse.urlparse(self.path).query
         query = urlparse.parse_qs(query_string)
-        if "/api/fah/bus2gpu" in self.path:
+        if "/api/amd/gpu" in self.path:
+            self.http_response(amd_gpu())
+        elif "/api/fah/bus2gpu" in self.path:
             self.http_response(fah_bus2gpu())
         elif "/api/fah/gpu2slot" in self.path:
             self.http_response(fah_gpu2slot())
         elif "/api/fah/gpu" in self.path:
             self.http_response(fah_gpu())
-        elif "/api/amd/gpu" in self.path:
-            self.http_response(amd_gpu())
         else:
             filename = self.path.split("?")[0]
             mode = 'r'
