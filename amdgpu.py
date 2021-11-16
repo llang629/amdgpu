@@ -133,7 +133,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Respond to a GET request."""
-        public_directory = curdir + sep + "fahamd" + sep
+        public_directory = curdir + sep + "amdgpu-public" + sep
         query_string = urlparse.urlparse(self.path).query
         query = urlparse.parse_qs(query_string)
         if "/api/fah/bus2gpu" in self.path:
