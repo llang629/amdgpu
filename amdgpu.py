@@ -68,11 +68,15 @@ def eth_gpu():
     """Retrieve Ethereum status for each gpu via sgminer api."""
     # derived from https://github.com/sgminer-dev/sgminer/blob/master/api-example.py
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', 4028))
-    s.send(json.dumps({'command': 'devs'}).encode())
-    eth_gpus = json.loads(socketread(s).decode('utf8').replace('\x00', ''))
-    s.close()
-    return eth_gpus
+    s.settimeout(3)
+    try:
+        s.connect(('127.0.0.1', 4028))
+        s.send(json.dumps({'command': 'devs'}).encode())
+        eth_gpus = json.loads(socketread(s).decode('utf8').replace('\x00', ''))
+        s.close()
+        return eth_gpus
+    except socket.error:
+        return {"error": "Ethereum miner not responding"}
 
 
 def fah_pyon(command, host="localhost"):
