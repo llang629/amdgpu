@@ -6,7 +6,7 @@ import requests
 from google.cloud import storage
 
 miner_url = "http://capitola.larrylang.net/api/eth/gpu"
-interval = 15  # minutes
+interval = 5  # minutes
 
 storage_client = storage.Client.from_service_account_json("powermeter.json")
 bucket_name = "ethereum_power"
@@ -23,7 +23,7 @@ except (IndexError):
 previous_epoch = -1  # first pass force open
 while True:
     date_now_iso = datetime.datetime.now().replace(microsecond=0).isoformat()
-    epoch = datetime.datetime.now().day  # .minute .hour
+    epoch = datetime.datetime.now().hour  # .minute .day
     if epoch != previous_epoch:
         try:
             gcs_file.close()
