@@ -1,16 +1,10 @@
 """Record miner power usage."""
 import sys
+import signal
 import datetime
 import time
 import requests
 from google.cloud import storage
-
-miner_url = "http://capitola.larrylang.net/api/eth/gpu"
-interval = 5  # minutes
-
-storage_client = storage.Client.from_service_account_json("powermeter.json")
-bucket_name = "ethereum_power"
-bucket = storage_client.bucket(bucket_name)
 
 try:
     fh = open(sys.argv[1], "w")
@@ -19,6 +13,39 @@ try:
     sys.stderr = fh
 except (IndexError):
     print("Logging to console")
+
+
+def signal_handler(signum, frame):
+    """Catch system signals."""
+    # TODO: catch signal from Windows Task Scheduler
+    # TODO: close Google Cloud Storage file gracefully
+    print("Signal Number:", signum, " Frame: ", frame)
+    sys.stdout.flush()
+    sys.exit(signum)
+
+
+catchable_signals = set(signal.Signals)
+if sys.platform == "darwin":
+    catchable_signals -= {signal.SIGKILL, signal.SIGSTOP}
+elif sys.platform == "win32":
+    catchable_signals -= {signal.CTRL_C_EVENT, signal.CTRL_BREAK_EVENT}
+else:
+    print("Untested system")
+    sys.stdout.flush()
+    sys.exit(1)
+
+for sig in catchable_signals:
+    print("Catching", sig)
+    sys.stdout.flush()
+    signal.signal(sig, signal_handler)
+
+
+miner_url = "http://capitola.larrylang.net/api/eth/gpu"
+interval = 5  # minutes
+
+storage_client = storage.Client.from_service_account_json("powermeter.json")
+bucket_name = "ethereum_power"
+bucket = storage_client.bucket(bucket_name)
 
 previous_epoch = -1  # first pass force open
 while True:
@@ -34,13 +61,18 @@ while True:
         print(date_now_iso, "starting new file")
         sys.stdout.flush()
         previous_epoch = epoch
+    gpu_count = 0
+    gpu_power = 0
+    try:
+        gpus = requests.get(url=miner_url, timeout=10).json()["DEVS"]
+        gpu_count = len(gpus)
+        for gpu in gpus:
+            gpu_power += gpu["GPU Power"]
+    except (requests.exceptions.RequestException, ValueError):
+        pass  # api fails to respond or response json invalid
     record = date_now_iso + ","
-    gpus = requests.get(url=miner_url).json()["DEVS"]
-    record += str(len(gpus)) + ","
-    power = 0
-    for gpu in gpus:
-        power += gpu["GPU Power"]
-    record += str(power)
+    record += str(gpu_count) + ","
+    record += str(gpu_power)
     print(record)
     sys.stdout.flush()
     gcs_file.write(record + "\n")
