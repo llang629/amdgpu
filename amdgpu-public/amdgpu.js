@@ -1,7 +1,7 @@
 
 // derived from https://plotly.com/javascript/streaming/
 'use strict'
-const legend = 'slot'
+const legend = 'bus'
 
 async function fahData (key) {
   const path = 'api/fah/' + key
@@ -61,11 +61,13 @@ async function init () {
     const time = new Date()
     let name = null
     if (legend === 'slot') {
+      // FAH update seems to have eliminated slot mapping
+      // TODO: clean up legacy javascript and python
       name = 'ID ' + gpu2slot[busNumbers[i][0]]
     } else if (legend === 'gpu') {
-      name = 'gpu ' + bus2gpu[busNumbers[i][0]]
+      name = 'slot ' + bus2gpu[busNumbers[i][0]] // formerly gpu
     } else {
-      name = 'bus ' + busNumbers[i][0].toString()
+      name = 'gpu ' + busNumbers[i][0].toString() // formerly bus
     }
     const traceInit = {
       x: [time],
@@ -100,5 +102,5 @@ async function init () {
     }
     Plotly.relayout('chart', minuteView)
     Plotly.extendTraces('chart', update, traceNumbers)
-  }, 250)
+  }, 1000)
 }
