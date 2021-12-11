@@ -6,6 +6,7 @@ storage_client = storage.Client.from_service_account_json("powermeter.json")
 bucket_name = "ethereum_power"
 bucket = storage_client.bucket(bucket_name)
 
+print("\033cConsolidating hourly into daily...")  # with clear screen
 daily_sources = {}
 for blob in storage_client.list_blobs(bucket_name, prefix="records-starting"):
     day = blob.name.split("T")[0].replace("starting", "daily")
@@ -13,13 +14,13 @@ for blob in storage_client.list_blobs(bucket_name, prefix="records-starting"):
         daily_sources[day].append(bucket.get_blob(blob.name))
     except KeyError:
         daily_sources[day] = [bucket.get_blob(blob.name)]
-print("Consolidating hourly into daily...")
 pprint.pprint(daily_sources)
 for day in daily_sources:
     destination = bucket.blob(day)
     destination.content_type = "text/csv"
     destination.compose(daily_sources[day])
 
+print("Consolidating daily into monthly...")
 monthly_sources = {}
 for blob in storage_client.list_blobs(bucket_name, prefix="records-daily"):
     month = blob.name.rsplit("-", 1)[0].replace("daily", "monthly")
@@ -27,13 +28,13 @@ for blob in storage_client.list_blobs(bucket_name, prefix="records-daily"):
         monthly_sources[month].append(bucket.get_blob(blob.name))
     except KeyError:
         monthly_sources[month] = [bucket.get_blob(blob.name)]
-print("Consolidating daily into monthly...")
 pprint.pprint(monthly_sources)
 for month in monthly_sources:
     destination = bucket.blob(month)
     destination.content_type = "text/csv"
     destination.compose(monthly_sources[month])
 
+print("Consolidating monthly into annual...")
 annual_sources = {}
 for blob in storage_client.list_blobs(bucket_name, prefix="records-monthly"):
     year = blob.name.rsplit("-", 1)[0].replace("monthly", "annual")
@@ -42,7 +43,6 @@ for blob in storage_client.list_blobs(bucket_name, prefix="records-monthly"):
         annual_sources[year].append(bucket.get_blob(blob.name))
     except KeyError:
         annual_sources[year] = [bucket.get_blob(blob.name)]
-print("Consolidating monthly into annual...")
 pprint.pprint(annual_sources)
 for year in annual_sources:
     destination = bucket.blob(year)
