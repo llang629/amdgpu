@@ -20,11 +20,13 @@ class SysSignals:
 
     def __init__(self):
         """Prepare to catch signals from local operating system."""
-        self.harmless_signals = {signal.SIGWINCH}  # window resizing
+        self.harmless_signals = set()
 
         catchable_signals = set(signal.Signals)
         if sys.platform == "darwin":
             catchable_signals -= {signal.SIGKILL, signal.SIGSTOP}
+            print(type(catchable_signals), type(self.harmless_signals))
+            self.harmless_signals.add(signal.SIGWINCH)  # window resizing
         elif sys.platform == "win32":
             catchable_signals -= {signal.CTRL_C_EVENT, signal.CTRL_BREAK_EVENT}
         else:
