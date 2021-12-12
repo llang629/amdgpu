@@ -1,3 +1,4 @@
 .DS_Store
 powermeter.json
 test*
+__pycache__
