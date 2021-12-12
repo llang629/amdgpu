@@ -20,6 +20,8 @@ class SysSignals:
 
     def __init__(self):
         """Prepare to catch signals from local operating system."""
+        self.harmless_signals = {signal.SIGWINCH}  # window resizing
+
         catchable_signals = set(signal.Signals)
         if sys.platform == "darwin":
             catchable_signals -= {signal.SIGKILL, signal.SIGSTOP}
@@ -41,6 +43,9 @@ class SysSignals:
         # TODO: close Google Cloud Storage file gracefully
         print("Signal Number:", signum, " Frame: ", frame)
         sys.stdout.flush()
+        if signum in self.harmless_signals:
+            print("Ignoring harmless signal")
+            return
         sys.exit(signum)
 
 
