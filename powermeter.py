@@ -51,7 +51,7 @@ class SysSignals:
 
 def record(url, interval):
     """Record GPU power consumption every interval."""
-    previous_epoch = -1  # first pass force open
+    previous_epoch = -1  # first pass force gcs file open
     while True:
         date_now_iso = datetime.datetime.now().replace(
             microsecond=0).isoformat()
@@ -61,6 +61,9 @@ def record(url, interval):
                 gcs_file.close()
             except NameError:
                 pass  # first pass nothing to close
+            except Exception as e:
+                print(e)
+                sys.stdout.flush()
             blob = bucket.blob("records-starting-" + date_now_iso)
             gcs_file = blob.open("wt", content_type="text/csv")
             print(date_now_iso, "starting new file")
