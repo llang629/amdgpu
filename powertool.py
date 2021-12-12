@@ -19,6 +19,7 @@ def consolidate(name, sources=[]):
 
 
 class color:
+    cls = '\033c'
     red = '\033[91m'
     yellow = '\033[93m'
     green = '\033[92m'
@@ -26,7 +27,6 @@ class color:
     bold = '\033[1m'
     underline = '\033[4m'
     end = '\033[0m'
-    cls = '\033c'
 
 
 class Level:
@@ -49,7 +49,6 @@ hour2day = Level("Hourly into daily", "records-starting")
 day2month = Level("Daily into monthly", "records-daily")
 month2year = Level("Monthly into annual", "records-monthly")
 levels = [hour2day, day2month, month2year]
-
 print(color.cls + color.bold + "*** Consolidating records ***" + color.end)
 for level in levels:
     previous = None
@@ -69,7 +68,6 @@ for level in levels:
         consolidate(previous, sources)
 
 month_now = datetime.datetime.now().month
-
 print(color.bold + "*** Gathering older records to delete ***" + color.end)
 blobs_to_delete = []
 for blob in chain(
@@ -81,8 +79,8 @@ for blob in chain(
     blobs_to_delete.append(bucket.get_blob(blob.name))
 
 if blobs_to_delete:
-    confirm = input(color.red + "Confirm deletions (y/N)? " + color.end).lower()
-    if confirm == "y":
+    confirm = input(color.red + "Confirm deletions (y/N)? " + color.end)
+    if confirm.lower() == "y":
         bucket.delete_blobs(blobs_to_delete)
         print("Deletions completed")
     else:
@@ -93,9 +91,8 @@ else:
 price = 0.23  # price per kWh in dollars
 interval = 5  # duration of record interval in minutes
 # TODO: import interval from powermeter
-
 print(color.bold +
-      "*** Calculating monthly power costs (${:0.2f} per kWh) ***".format(
+      "*** Calculating energy use and costs (${:0.2f} per kWh) ***".format(
           price) + color.end)
 for blob in storage_client.list_blobs(bucket_name, prefix="records-monthly"):
     monthly_records = blob.download_as_string().splitlines()
