@@ -8,11 +8,11 @@ import requests
 from google.cloud import storage
 
 storage_client = storage.Client.from_service_account_json("powermeter.json")
-bucket_name = "ethereum_power_test"
+bucket_name = "ethereum_power"
 bucket = storage_client.bucket(bucket_name)
 
 miner_url = "http://capitola.larrylang.net/api/eth/gpu"
-interval = 5  # minutes
+interval = 5  # minutes between records
 
 
 class SysSignals:
